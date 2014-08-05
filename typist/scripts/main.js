@@ -1,0 +1,1 @@
+(function(){require.config({urlArgs:"v="+(new Date).getTime(),paths:{jquery:"vendor/jquery",backbone:"vendor/backbone",underscore:"vendor/lodash"}}),require(["jquery","app/wordCollection","app/wordListView","app/typistView"],function(e,t,n,r){var i=new t,s=function(t){new r({collection:t});var i=new n({collection:t});e(".box").append(i.render().el)};i.fetch({success:s})})})();

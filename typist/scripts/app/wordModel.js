@@ -1,0 +1,1 @@
+define(["backbone"],function(e){return e.Model.extend({defaults:{active:!1,typed:!1}})});

@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Fast Fingers</title>
+        <link rel="stylesheet" href="styles/main.css">
+    </head>
+    <body>
+
+        <div class="fast-fingers">
+            <h1>The Typist</h1>
+
+            <div class="box"></div>
+
+            <div id="typist" class="typist">
+                <div class="input">
+                    <input class="entry" type="text" disabled>
+                    <span class="timer" class="timer">1:00</span>
+                    <button class="reload" disabled>Reload</button>
+                </div>
+            </div>
+
+        </div>
+
+        <script type="text/template" id="stats">
+            <table class="stats">
+                <tr>
+                    <th colspan="2" class="header">Your result</th>
+                </tr>
+                <tr>
+                    <th>Words per minute:</th>
+                    <td><%= typed %></td>
+                </tr>
+                <tr>
+                    <th>Correct words:</th>
+                    <td class="correct"><%= correct %></td>
+                </tr>
+                <tr>
+                    <th>Incorrect words:</th>
+                    <td class="incorrect"><%= incorrect %></td>
+                </tr>
+                <tr>
+                    <th>Keystrokes:</th>
+                    <td><%= keystrokes %></td>
+                </tr>
+            </table>
+        </script>
+
+        <script data-main="scripts/main" src="scripts/require.js"></script>
+    </body>
+</html>
