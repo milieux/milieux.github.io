@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>FlightDelay Viz</title>
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/typeahead.css">
+        <link rel="stylesheet" href="css/dc.css">
+        <link rel="stylesheet" href="css/viz.css">
+        <link href='http://fonts.googleapis.com/css?family=Gudea' rel='stylesheet' type='text/css'>
+    </head>
+    <body>
+
+        <div class="container">
+
+            <h1>Flight Delays Visualization</h1>
+
+            <div class="overlay">
+                <input id="dep" type="text" placeholder="Where are you flying from?" disabled class=" dep typeahead">
+                </span>
+                <span id="msg" class="error msg">We can't find flights from this location</span>
+            </div>
+
+            <div id="map" class="area map">
+                <h2 class="hidden">Routes reached by departing airport</h2>
+            </div>
+
+            <div class="charts clearfix hidden">
+                <div id="distance-chart" class="area">
+                    <h2>Destination distance</h2>
+                    <button type="button" class="reset">reset</button>
+                </div>
+            </div>
+
+            <div class="charts clearfix hidden">
+                <div id="dep-delay-chart" class="area clearfix">
+                    <h2>Average departure delays by destination</h2>
+                    <button type="button" class="reset">reset</button>
+                </div>
+            </div>
+
+            <div class="charts hidden">
+                <div id="airline-chart" class="area col-2 clearfix">
+                    <h2>Airline performance</h2>
+                    <button type="button" class="reset">reset</button>
+                </div>
+
+                <div id="day-chart" class="area col-2 clearfix">
+                    <h2>Flights availability</h2>
+                    <button type="button" class="reset">reset</button>
+                </div>
+            </div>
+
+        </div>
+
+        <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.1.0/topojson.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.4/typeahead.bundle.min.js"></script>
+        <script src="js/datamaps.usa.min.js"></script>
+        <script src="js/dc.js"></script>
+        <script src="js/viz.js"></script>
+    </body>
+</html>

@@ -1,0 +1,146 @@
+body {
+    background-color: #EAE5E1;
+    font-family:'Gudea', sans-serif;
+    padding: 1em 1em 3em 1em;
+    color: #4F0C00;
+}
+
+.clearfix:before,
+.clearfix:after {
+    content: " ";
+    display: table;
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+.hidden {
+    display: none;
+}
+
+.container {
+    margin: 1em auto;
+    width: 90%;
+}
+
+h1 {
+    color: #AB2418;
+}
+
+.overlay {
+    background-color: rgba(255,255,255,0.7);
+    padding: 1em;
+    border-radius: 0.5em;
+}
+
+    .msg {
+        position: relative;
+        top: 0.8em;
+        left: 0.5em;
+        display: none;
+        opacity: 0;
+        color: #AB2418;
+        font-size: 1.2em;
+        margin-bottom:1em ;
+        transition: all 0.5s ease-in;
+    }
+
+    .msg.in {
+        opacity: 1;
+        display: inline-block;
+    }
+
+    .error,
+    .error:focus,
+    .error:active {
+        border-color: #AB2418;
+        color: #AB2418;
+    }
+
+.area {
+    position: relative;
+}
+
+    .area h2 {
+        position: absolute;
+        top: 0;
+        left: 3em;
+        font-size: 1.3em;
+        background: rgba(169,35,23, 0.2);
+        padding: 0.2em 0.4em;
+        border-radius: 0.5em;
+    }
+
+    .map {
+        height: 600px;
+        width: 1000px;
+    }
+
+.charts {
+    overflow: hidden;
+    clear: both;
+    margin-bottom: 2em;
+}
+
+    .charts .area {
+        padding-top: 4em;
+        padding-bottom: 1em;
+    }
+
+    .charts .col-2 {
+        float: left;
+    }
+
+    #airline-chart {
+        width: 400px;
+        padding-right: 2em;
+    }
+
+.reset {
+    position: absolute;
+    top: 1.5em;
+    background: none;
+    border: none;
+    color: #AB2418;
+    font-weight: bold;
+    text-decoration: underline;
+    border-radius: 0.5em;
+    transition: all 0.2s;
+}
+
+.reset:hover {
+    background-color: rgba(239, 114, 103, 0.6);
+    text-decoration: none;
+}
+
+
+/* SVG */
+svg .bar rect {
+    fill: rgba(214, 39, 40, 0.7);
+    stroke: rgba(214, 39, 40, 0.9);
+    stroke-width: 1px;
+}
+
+    svg .bar text {
+        font-size: 0.8em;
+        fill: #4F0C00;
+    }
+
+svg .tick line {
+    stroke: transparent;
+}
+
+svg .tick text {
+    color: #4F0C00;
+}
+
+svg .axis text {
+    font-size: 10px;
+}
+
+svg .axis path,
+svg .axis line {
+    fill: none;
+    shape-rendering: crispEdges;
+}
