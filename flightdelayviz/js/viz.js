@@ -354,13 +354,13 @@
     }
 
     function fetchAirlinesData(){
-        d3.csv('/data/airlines.csv', function(data){
+        d3.csv('data/airlines.csv', function(data){
             airlines = data;
         });
     }
 
     function fetchAirportsData(){
-        d3.csv('/data/airports.csv', function(data){
+        d3.csv('data/airports.csv', function(data){
             airports = data.map(function(d){
                 return {
                     iataCode: d.iata_code,
@@ -376,7 +376,7 @@
     }
 
     function fetchFlightsData(){
-        d3.json('/data/ontime_data_test.json', function(data){
+        d3.json('data/ontime_data_test.json', function(data){
             flightsData = data;
             $('#dep').prop('disabled', false);
         });
