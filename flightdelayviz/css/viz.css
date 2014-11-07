@@ -114,6 +114,14 @@ h1 {
     text-decoration: none;
 }
 
+.hover-info {
+    padding: 0.2em 0.5em;
+    color: #E9D3A1;
+    font-family:'Gudea', sans-serif;
+    background: rgba(231, 95, 43, 0.7);
+    transition: 0.2s all;
+}
+
 
 /* SVG */
 svg .bar rect {
