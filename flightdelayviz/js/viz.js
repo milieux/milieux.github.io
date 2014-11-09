@@ -287,7 +287,7 @@
 
         map.bubbles(bubbles, {
             popupTemplate: function(geo, data) {
-                var html = '<div class='hover-info'>' + data.iataCode + ' - ' + data.name;
+                var html = '<div class="hover-info">' + data.iataCode + ' - ' + data.name;
                     html += '</div>';
                 return html;
             }
