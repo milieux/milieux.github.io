@@ -8,9 +8,9 @@
     var map;
 
     var dayChart = dc.rowChart('#day-chart');
-    var airlineChart = dc.barChart("#airline-chart");
-    var distanceChart = dc.barChart("#distance-chart");
-    var depDelayChart = dc.barChart("#dep-delay-chart");
+    var airlineChart = dc.barChart('#airline-chart');
+    var distanceChart = dc.barChart('#distance-chart');
+    var depDelayChart = dc.barChart('#dep-delay-chart');
 
 
     function drawCharts(data){
@@ -18,59 +18,192 @@
 
         var flights = crossfilter(data);
 
-        var dest = flights.dimension(function(d){
-            return d.dest;
-        });
-        //this is inefficient!
-        var distanceGroup = dest.group().reduce(
-            function (p, v){
-                p.total++;
-                p.distance += +v.distance;
-                p.avgDistance = p.distance / p.total;
-                return p;
-            },
-            function (p, v){
-                p.total--;
-                p.distance -= +v.distance;
-                p.avgDistance = p.distance / p.total;
-                return p;
-            },
-            function (){
-                return {
-                    total: 0,
-                    distance: 0,
-                    avgDistance: 0
-                };
-            }
-        );
-
-        var depDelayGroup = dest.group().reduce(reduceAddDelay, reduceRemoveDelay, reduceInitialDelay);
-
-        var allDelays = depDelayGroup.all().map(function(d){
-            return d.key;
-        });
-
-        var allDestinations = distanceGroup.all().map(function(d){
-            return d.key;
-        });
+        var dest, distanceGroup;
+        var destDelay, depDelayGroup;
+        var airline, airlineGroup;
+        var days, daysGroup;
 
 
-        var days = flights.dimension(function(d) {
-            var day = +d.day_of_week - 1;
-            var name = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            return day + '.' + name[day];
-        });
-        var daysGroup = days.group();
+        function setupDistanceChart(){
+            dest = flights.dimension(function(d){
+                return d.dest;
+            });
 
+            distanceGroup = dest.group().reduce(
+                function (p, v){
+                    p.total++;
+                    p.distance += +v.distance;
+                    p.avgDistance = p.distance / p.total;
+                    return p;
+                },
+                function (p, v){
+                    p.total--;
+                    p.distance -= +v.distance;
+                    p.avgDistance = p.distance / p.total;
+                    return p;
+                },
+                function (){
+                    return {
+                        total: 0,
+                        distance: 0,
+                        avgDistance: 0
+                    };
+            })
+            .order(function(d){
+                return -d.avgDistance;
+            });
 
-        var airline = flights.dimension(function(d){
-            return d.unique_carrier;
-        });
-        var airlineGroup = airline.group().reduce(reduceAddDelay, reduceRemoveDelay, reduceInitialDelay);
-        var allAirlines = airlineGroup.all().map(function(d){
-            return d.key;
-        });
+            distanceGroup.all = function(){
+                return distanceGroup.top(Infinity);
+            };
 
+            // Destination distance - bar chart
+            distanceChart.width(800)
+                .height(240)
+                .margins({top: 10, right: 10, bottom: 30, left: 45})
+                .dimension(dest)
+                .group(distanceGroup)
+                .transitionDuration(500)
+                .centerBar(true)
+                .x(d3.scale.ordinal().domain(dest))
+                .xUnits(dc.units.ordinal)
+                .elasticY(true)
+                .yAxisLabel('Distance in miles')
+                .valueAccessor(function(d) {
+                    return d.value.avgDistance;
+                })
+                .ordinalColors(['#E1B74D'])
+                .renderHorizontalGridLines(true)
+                .title(function(d){
+                    var airport = getAirportInfo(d.key);
+                    var name = airport ? airport.name : d.key;
+                    return name + '\nDistance (in miles): ' + d.value.avgDistance;
+                })
+                .gap(1)
+                .xAxisLabel('Destination airports (hover on chart to see details)')
+                .xAxis().tickFormat(function(d) { return ''; });
+        }
+
+        function setupDelayChart(){
+            destDelay = flights.dimension(function(d){
+                return d.dest;
+            });
+
+            depDelayGroup = destDelay.group()
+                .reduce(reduceAddDelay, reduceRemoveDelay, reduceInitialDelay)
+                .order(function(d){
+                    return -d.avgDepDelayTime;
+                });
+
+            depDelayGroup.all = function(){
+                return depDelayGroup.top(Infinity);
+            };
+
+            // Avg delay by destination distance - bar chart
+            depDelayChart.width(800)
+                .height(240)
+                .margins({top: 10, right: 10, bottom: 30, left: 45})
+                .dimension(destDelay)
+                .group(depDelayGroup)
+                .transitionDuration(500)
+                .centerBar(false)
+                .x(d3.scale.ordinal().domain(destDelay))
+                .xUnits(dc.units.ordinal)
+                .elasticY(false)
+                .yAxisLabel('Delay time in minutes')
+                .valueAccessor(function(d) {
+                    return d.value.avgDepDelayTime;
+                })
+                .colors(d3.scale.ordinal().domain(['late', 'early']).range(['#BB302F', '#849823']))
+                .colorAccessor(function(d) {
+                    if (d.value.avgDepDelayTime > 0) {
+                        return 'late';
+                    }
+                    return 'early';
+                })
+                .renderHorizontalGridLines(true)
+                .title(function(d){
+                    var airport = getAirportInfo(d.key);
+                    var name = airport ? airport.name : d.key;
+                    return name + '\nAverage delay time (in mins): ' + d3.round(d.value.avgDepDelayTime);
+                })
+                .xAxisLabel('Destination airports (hover on chart to see details)')
+                .xAxis().tickFormat(function(d) { return ''; });
+        }
+
+        function setupAirlineChart() {
+            airline = flights.dimension(function(d){
+                return d.unique_carrier;
+            });
+
+            airlineGroup = airline.group()
+                .reduce(reduceAddDelay, reduceRemoveDelay, reduceInitialDelay)
+                .order(function(d){
+                    return -d.avgDepDelayTime;
+                });
+
+            airlineGroup.all = function(){
+                return airlineGroup.top(Infinity);
+            };
+
+            // Airline performance - bar chart
+            airlineChart.width(360)
+                .height(240)
+                .margins({top: 10, right: 10, bottom: 30, left: 40})
+                .dimension(airline)
+                .group(airlineGroup)
+                .transitionDuration(500)
+                .centerBar(true)
+                .x(d3.scale.ordinal().domain(airlineGroup))
+                .xUnits(dc.units.ordinal)
+                .elasticY(true)
+                .yAxisLabel('Delay time in minutes')
+                .valueAccessor(function(d) {
+                    return d.value.avgDepDelayTime;
+                })
+                .colors(d3.scale.ordinal().domain(['late', 'early']).range(['#BB302F', '#849823']))
+                .colorAccessor(function(d) {
+                    if (d.value.avgDepDelayTime > 0) {
+                        return 'late';
+                    }
+                    return 'early';
+                })
+                .renderHorizontalGridLines(true)
+                .title(function(d){
+                    var airline = getAirlineInfo(d.key);
+                    var name = airline ? airline.description : d.key;
+                    return name + '\nNumber of flights: ' + d.value.totalFlights + '\nAvg delay time (in mins): ' + d3.round(d.value.avgDepDelayTime) + '\nCancellations: ' + d.value.totalDelays;
+                })
+                .xAxisLabel('Airlines (hover on chart to see details)')
+                .xAxis().tickFormat(function(d) { return ''; });
+        }
+
+        function setupDaysChart() {
+            days = flights.dimension(function(d) {
+                var day = +d.day_of_week - 1;
+                var name = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                return day + '.' + name[day];
+            });
+
+            daysGroup = days.group();
+
+            // Flights availability - row chart
+            dayChart.width(240)
+                .height(240)
+                .margins({top: 20, left: 10, right: 10, bottom: 20})
+                .group(daysGroup)
+                .dimension(days)
+                .transitionDuration(500)
+                .ordinalColors(['#9b8063', '#866f56', '#725e49', '#5d4d3b', '#483c2e', '#332a21', '#1f1914'])
+                .elasticX(true)
+                .label(function (d) {
+                    return d.key.split('.')[1];
+                })
+                .title(function (d) {
+                    return 'Number of flights: ' + d.value;
+                })
+                .xAxis().ticks(4);
+        }
 
         function reduceAddDelay(p, v){
             p.totalFlights++;
@@ -112,97 +245,10 @@
             dc.redrawAll();
         }
 
-
-        // Destination distance - bar chart
-        depDelayChart.width(800)
-            .height(240)
-            .margins({top: 10, right: 10, bottom: 20, left: 40})
-            .dimension(dest)
-            .group(depDelayGroup)
-            .transitionDuration(500)
-            .centerBar(true)
-            .x(d3.scale.ordinal().domain(allDestinations))
-            .xUnits(dc.units.ordinal)
-            .elasticY(true)
-            .valueAccessor(function(d) {
-                return d.value.avgDepDelayTime;
-            })
-            .ordinalColors(['#546017'])
-            .renderHorizontalGridLines(true)
-            .title(function(d){
-                var airport = getAirportInfo(d.key);
-                var name = airport ? airport.name : d.key;
-                return name + '\nAverage delay time (in mins): ' + d3.round(d.value.avgDepDelayTime);
-            })
-            .xAxis().tickFormat(function(d) { return ''; });
-
-
-        // Destination distance - bar chart
-        distanceChart.width(800)
-            .height(240)
-            .margins({top: 10, right: 10, bottom: 20, left: 40})
-            .dimension(dest)
-            .group(distanceGroup)
-            .transitionDuration(500)
-            .centerBar(true)
-            .x(d3.scale.ordinal().domain(allDestinations))
-            .xUnits(dc.units.ordinal)
-            .elasticY(true)
-            .valueAccessor(function(d) {
-                return d.value.avgDistance;
-            })
-            .ordinalColors(['#849823'])
-            .renderHorizontalGridLines(true)
-            .title(function(d){
-                var airport = getAirportInfo(d.key);
-                var name = airport ? airport.name : d.key;
-                return name + '\nDistance (in miles): ' + d.value.avgDistance;
-            })
-            .xAxis().tickFormat(function(d) { return ''; });
-
-
-        // Airline performance - bar chart
-        airlineChart.width(360)
-            .height(240)
-            .margins({top: 10, right: 10, bottom: 20, left: 40})
-            .dimension(airline)
-            .group(airlineGroup)
-            .transitionDuration(500)
-            .centerBar(true)
-            .x(d3.scale.ordinal().domain(allAirlines))
-            .xUnits(dc.units.ordinal)
-            .elasticY(true)
-            .valueAccessor(function(d) {
-                return d.value.avgDepDelayTime;
-            })
-            .ordinalColors(['#BB302F', '#5c1817'])
-            .stack(airlineGroup, "Cancellations", function(d){
-                return d.value.totalDelays;
-            })
-            .renderHorizontalGridLines(true)
-            .title(function(d){
-                var airline = getAirlineInfo(d.key);
-                var name = airline ? airline.description : d.key;
-                return name + '\nNumber of flights: ' + d.value.totalFlights + "\nAvg delay time (in mins): " + d3.round(d.value.avgDepDelayTime) + '\nCancellations: ' + d.value.totalDelays;
-            })
-            .xAxis().ticks(1).tickPadding(1).tickValues(allAirlines);
-
-        // Flights availability - row chart
-        dayChart.width(240)
-            .height(240)
-            .margins({top: 20, left: 10, right: 10, bottom: 20})
-            .group(daysGroup)
-            .dimension(days)
-            .transitionDuration(500)
-            .ordinalColors(['#9b8063', '#866f56', '#725e49', '#5d4d3b', '#483c2e', '#332a21', '#1f1914'])
-            .elasticX(true)
-            .label(function (d) {
-                return d.key.split('.')[1];
-            })
-            .title(function (d) {
-                return 'Number of flights: ' + d.value;
-            })
-            .xAxis().ticks(4);
+        setupDistanceChart();
+        setupDelayChart();
+        setupAirlineChart();
+        setupDaysChart();
 
         dc.renderAll();
         $('.reset').on('click', resetCharts);
@@ -241,7 +287,7 @@
 
         map.bubbles(bubbles, {
             popupTemplate: function(geo, data) {
-                var html = '<div class="hover-info">' + data.iataCode + ' - ' + data.name;
+                var html = '<div class='hover-info'>' + data.iataCode + ' - ' + data.name;
                     html += '</div>';
                 return html;
             }
